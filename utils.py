@@ -32,4 +32,10 @@ class UtilsCog(commands.Cog):
         await ctx.send(f'Аватарка {avamember}')
         userAvatarUrl = avamember.avatar_url
         await ctx.send(userAvatarUrl)
-        
+
+    @commands.command()
+    async def clear(self, ctx, amount=None):
+        if amount is not None:
+            await ctx.channel.purge(limit=int(amount))
+        else:
+            await ctx.channel.purge(limit=1000)

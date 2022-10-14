@@ -3,6 +3,7 @@ import asyncio
 import handmade_crypto
 import sqlite3
 import quizGames
+from admin import AdminCog
 from help import HelpCog
 import discord
 from discord_buttons_plugin import *
@@ -111,7 +112,7 @@ async def on_message(ctx):
 
 @bot.command()
 async def say_hello(ctx):
-    await ctx.send('hello')
+    await ctx.send('hello')   
 
 
 '''music'''
@@ -486,4 +487,7 @@ bot.add_cog(HelpCog(bot))
 bot.add_cog(MusicCog(bot))
 bot.add_cog(SchoolTimetableCog(bot))
 bot.add_cog(UtilsCog(bot))
+bot.add_cog(AdminCog(bot))
+
+
 bot.run(config.token)
