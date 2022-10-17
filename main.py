@@ -4,6 +4,7 @@ import handmade_crypto
 import sqlite3
 import quizGames
 from admin import AdminCog
+from anonimbot import AnonBCog
 from help import HelpCog
 import discord
 from discord_buttons_plugin import *
@@ -21,6 +22,7 @@ import config
 from music import MusicCog
 from schoolTimetable import SchoolTimetableCog
 from utils import UtilsCog
+from user_utils import UserUtilsCog
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'), intents=discord.Intents.all())
 slash = SlashCommand(bot, sync_commands=True)
@@ -107,6 +109,20 @@ async def on_ready():
 @bot.event
 async def on_message(ctx):
     print('new_message')
+    if ctx.content[0] == ',':
+        base = sqlite3.connect('discord.db')
+        cur = base.cursor()
+
+        pairs = cur.execute('SELECT * FROM anonbotpairs').fetchall()
+        for i in range(len(pairs)):
+            if ctx.author.id == pairs[i][0]:
+                user = bot.get_user(int(pairs[i][1]))
+                await user.send(f"{ctx.content}")
+            elif ctx.author.id == pairs[i][1]:
+                user = bot.get_user(int(pairs[i][0]))
+                await user.send(f"{ctx.content}")
+
+        print(pairs)
     await bot.process_commands(ctx)
 
 
@@ -290,8 +306,10 @@ async def phisicsFormulas(ctx, *args):
     letter = args[0]
     if len(args) == 2:
         grade = args[1]
+        print(grade)
     if len(args) == 3:
         topic = args[2]
+        print(topic)
 
     base = sqlite3.connect("discord.db")
     cur = base.cursor()
@@ -342,9 +360,20 @@ async def XOR_STR(ctx, message_1, message_2):
 
 
 @bot.command(pass_context=True)
-async def nick(ctx, member: discord.Member, nickname):
-    await member.edit(nick=nickname)
-    await ctx.send(f"Ник {discord.member} изменен")
+async def nickname(ctx, member: discord.Member, nick=None):
+    if nick is None:
+        nick = "A Cool Nickname"
+    try:
+        if member:
+            name_before = member.display_name
+            await member.edit(nick=nick)
+        else:
+            member = ctx.message.author
+            name_before = member.display_name
+            await member.edit(nick=nick)
+        await ctx.send(f"Changed {member.mention}'s nickname from {name_before} to {member.display_name}")
+    except Exception as e:
+        await ctx.send(str(e))
 
 
 @bot.command()
@@ -487,7 +516,9 @@ bot.add_cog(HelpCog(bot))
 bot.add_cog(MusicCog(bot))
 bot.add_cog(SchoolTimetableCog(bot))
 bot.add_cog(UtilsCog(bot))
+bot.add_cog(UserUtilsCog(bot))
 bot.add_cog(AdminCog(bot))
+bot.add_cog(AnonBCog(bot))
 
 
 bot.run(config.token)
