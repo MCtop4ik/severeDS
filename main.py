@@ -20,6 +20,7 @@ import time
 import pafy
 import config
 from music import MusicCog
+from roleplay import RolePlayCog
 from schoolTimetable import SchoolTimetableCog
 from utils import UtilsCog
 from user_utils import UserUtilsCog
@@ -97,32 +98,61 @@ async def on_command_error(ctx, error):
 async def on_ready():
     global allGuilds
     global playlist
+
     print('bot is ready')
+
+    base = sqlite3.connect('discord.db')
+    cur = base.cursor()
+
     for guild in bot.guilds:
         allGuilds.append(guild.id)
         playlist = {guild.id: []}
-        print(guild.id)
+        res = cur.execute(f"SELECT id_server FROM servers WHERE id_server = ?", (str(guild.id), )).fetchall()
+        count = len(res)
+
+        if count > 0:
+            pass
+        else:
+            cur.execute("INSERT INTO servers(id_server, age_permission) VALUES (?, '0+')", (str(guild.id), ))
+            base.commit()
     await bot.change_presence(status=discord.Status.online,
                               activity=discord.Game("Бот разрабатывается. Version Severe 1.0.0"))
 
 
 @bot.event
 async def on_message(ctx):
-    print('new_message')
-    if ctx.content[0] == ',':
-        base = sqlite3.connect('discord.db')
-        cur = base.cursor()
+    print(ctx.content)
+    base = sqlite3.connect('discord.db')
+    cur = base.cursor()
 
-        pairs = cur.execute('SELECT * FROM anonbotpairs').fetchall()
-        for i in range(len(pairs)):
-            if ctx.author.id == pairs[i][0]:
-                user = bot.get_user(int(pairs[i][1]))
-                await user.send(f"{ctx.content}")
-            elif ctx.author.id == pairs[i][1]:
-                user = bot.get_user(int(pairs[i][0]))
-                await user.send(f"{ctx.content}")
+    if len(ctx.content) != 0:
 
-        print(pairs)
+        phrases = cur.execute("SELECT * FROM roleplaytable").fetchall()
+        for i in range(len(phrases)):
+            if str(ctx.content).lower().find(phrases[i][1]) == 0 and ctx.reference:
+                res = cur.execute(f"SELECT age_permission FROM servers WHERE id_server = ?",
+                                  (str(ctx.guild.id),)).fetchall()
+                phrase = phrases[i][2].replace("%%author%%", ctx.author.mention)\
+                    .replace("%%member%%", ctx.reference.resolved.author.mention)
+                if res[0][0] == "18+":
+                    await ctx.channel.send(phrase)
+                elif res[0][0] == "13+" and phrases[i][3] != "18+":
+                    await ctx.channel.send(phrase)
+                elif res[0][0] == "0+" and phrases[i][3] != "18+" and phrases[i][3] != "13+":
+                    await ctx.channel.send(phrase)
+
+        if ctx.content[0] == ',':
+            base = sqlite3.connect('discord.db')
+            cur = base.cursor()
+
+            pairs = cur.execute('SELECT * FROM anonbotpairs').fetchall()
+            for i in range(len(pairs)):
+                if ctx.author.id == pairs[i][0]:
+                    user = bot.get_user(int(pairs[i][1]))
+                    await user.send(f"{ctx.content}")
+                elif ctx.author.id == pairs[i][1]:
+                    user = bot.get_user(int(pairs[i][0]))
+                    await user.send(f"{ctx.content}")
     await bot.process_commands(ctx)
 
 
@@ -519,6 +549,7 @@ bot.add_cog(UtilsCog(bot))
 bot.add_cog(UserUtilsCog(bot))
 bot.add_cog(AdminCog(bot))
 bot.add_cog(AnonBCog(bot))
+bot.add_cog(RolePlayCog(bot))
 
 
 bot.run(config.token)

@@ -1,4 +1,4 @@
-token = 'MTAxNzUxNTE4NjgwODE2MDQyNw.GPNG0V.z_XK9l4-exn4EEeuefd5KWTiFbuU6fk8qFgPak'
+token = 'MTAxNzUxNTE4NjgwODE2MDQyNw.GkljJL.HBk4wXbQnZ4ViJn3QQ23T3TWxQfuery2lA8e-4'
 YDL_OPTIONS = {'format': 'worstaudio/best', 'noplaylist': 'False', 'simulate': 'True',
                'preferredquality': '192', 'preferredcodec': 'mp3', 'key': 'FFmpegExtractAudio'}
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
