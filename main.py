@@ -1,5 +1,7 @@
 import asyncio
+import random
 
+import banklib
 import handmade_crypto
 import sqlite3
 import quizGames
@@ -24,6 +26,9 @@ from roleplay import RolePlayCog
 from schoolTimetable import SchoolTimetableCog
 from utils import UtilsCog
 from user_utils import UserUtilsCog
+from discord.utils import get
+
+from virtual_bank import BankCog
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'), intents=discord.Intents.all())
 slash = SlashCommand(bot, sync_commands=True)
@@ -107,13 +112,13 @@ async def on_ready():
     for guild in bot.guilds:
         allGuilds.append(guild.id)
         playlist = {guild.id: []}
-        res = cur.execute(f"SELECT id_server FROM servers WHERE id_server = ?", (str(guild.id), )).fetchall()
+        res = cur.execute(f"SELECT id_server FROM servers WHERE id_server = ?", (str(guild.id),)).fetchall()
         count = len(res)
 
         if count > 0:
             pass
         else:
-            cur.execute("INSERT INTO servers(id_server, age_permission) VALUES (?, '0+')", (str(guild.id), ))
+            cur.execute("INSERT INTO servers(id_server, age_permission) VALUES (?, '0+')", (str(guild.id),))
             base.commit()
     await bot.change_presence(status=discord.Status.online,
                               activity=discord.Game("Бот разрабатывается. Version Severe 1.0.0"))
@@ -132,7 +137,7 @@ async def on_message(ctx):
             if str(ctx.content).lower().find(phrases[i][1]) == 0 and ctx.reference:
                 res = cur.execute(f"SELECT age_permission FROM servers WHERE id_server = ?",
                                   (str(ctx.guild.id),)).fetchall()
-                phrase = phrases[i][2].replace("%%author%%", ctx.author.mention)\
+                phrase = phrases[i][2].replace("%%author%%", ctx.author.mention) \
                     .replace("%%member%%", ctx.reference.resolved.author.mention)
                 if res[0][0] == "18+":
                     await ctx.channel.send(phrase)
@@ -158,7 +163,7 @@ async def on_message(ctx):
 
 @bot.command()
 async def say_hello(ctx):
-    await ctx.send('hello')   
+    await ctx.send('hello')
 
 
 '''music'''
@@ -415,6 +420,18 @@ async def unicode(ctx, text, num=False):
 
 
 @bot.command()
+async def createChannel(ctx, nameserver):
+    guild = ctx.guild
+    await guild.create_text_channel(name="{}".format(nameserver))
+
+
+@bot.command()
+async def deleteChannel(ctx, channel: discord.TextChannel):
+    await ctx.send("Channel Deleted")
+    await channel.delete()
+
+
+@bot.command()
 async def createQuiz(ctx, message, *emojis):
     if len(emojis) == 0:
         await buttons.send(
@@ -550,6 +567,6 @@ bot.add_cog(UserUtilsCog(bot))
 bot.add_cog(AdminCog(bot))
 bot.add_cog(AnonBCog(bot))
 bot.add_cog(RolePlayCog(bot))
-
+bot.add_cog(BankCog(bot))
 
 bot.run(config.token)
