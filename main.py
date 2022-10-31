@@ -1,7 +1,6 @@
 import asyncio
-import random
+from datetime import date
 
-import banklib
 import handmade_crypto
 import sqlite3
 import quizGames
@@ -24,10 +23,10 @@ import config
 from music import MusicCog
 from roleplay import RolePlayCog
 from schoolTimetable import SchoolTimetableCog
+from stonescissorpaper import GameCog
+from usercard import CardCog
 from utils import UtilsCog
 from user_utils import UserUtilsCog
-from discord.utils import get
-
 from virtual_bank import BankCog
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'), intents=discord.Intents.all())
@@ -104,10 +103,18 @@ async def on_ready():
     global allGuilds
     global playlist
 
+    current_date = date.today()
+
     print('bot is ready')
 
     base = sqlite3.connect('discord.db')
     cur = base.cursor()
+
+    if current_date != date.today():
+        cur.execute("UPDATE userbalance SET daily = REPLACE(daily, 'False', 'True')")
+        base.commit()
+    else:
+        pass
 
     for guild in bot.guilds:
         allGuilds.append(guild.id)
@@ -564,9 +571,11 @@ bot.add_cog(MusicCog(bot))
 bot.add_cog(SchoolTimetableCog(bot))
 bot.add_cog(UtilsCog(bot))
 bot.add_cog(UserUtilsCog(bot))
+bot.add_cog(GameCog(bot))
 bot.add_cog(AdminCog(bot))
 bot.add_cog(AnonBCog(bot))
 bot.add_cog(RolePlayCog(bot))
 bot.add_cog(BankCog(bot))
+bot.add_cog(CardCog(bot))
 
 bot.run(config.token)

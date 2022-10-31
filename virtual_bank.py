@@ -19,3 +19,7 @@ class BankCog(commands.Cog):
     @commands.command()
     async def daily(self, ctx):
         await ctx.send(self.account.dailyCommand(str(ctx.author.id)))
+
+    @commands.command()
+    async def transaction(self, ctx, user2, amount):
+        await ctx.send(self.account.transfer(str(ctx.author.id), user2[2:][:-1], int(amount)))

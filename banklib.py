@@ -10,13 +10,13 @@ class Database:
         self.cursor = self.base.cursor()
 
     def transfer(self, sender: str, recipient: str, amount: int):
-        senderamount = self.amount(userid=sender)
-        recipeientamount = self.amount(userid=recipient)
-        if amount > senderamount[0][0]:
-            return
+        senderamount = int(self.amount(userid=sender))
+        recipeientamount = int(self.amount(userid=recipient))
+        if amount > senderamount:
+            return "Unsuccessful"
 
-        newsenderamount = senderamount[0][0] - amount
-        newrecepientamount = recipeientamount[0][0] + amount
+        newsenderamount = senderamount - amount
+        newrecepientamount = recipeientamount + amount
         self.cursor.execute('UPDATE userbalance SET northern == ? WHERE userid == ?', (newsenderamount, sender))
         self.cursor.execute('UPDATE userbalance SET northern == ? WHERE userid == ?', (newrecepientamount, recipient))
         self.base.commit()
@@ -38,22 +38,19 @@ class Database:
         self.base.commit()
 
     def daily(self, userid: str):
-        print('here')
         daily = self.cursor.execute("SELECT daily FROM userbalance WHERE userid == ?", (userid, )).fetchall()
-        print(daily[0][0])
-        if daily[0][0]:
-            print('here')
+        if daily[0][0] == "True":
             randomnum = random.randint(10, 50)
-            recipeientamount = self.amount(userid=userid)
-            newrecepientamount = recipeientamount[0][0] + randomnum
+            recipeientamount = int(self.amount(userid=str(userid)))
+            newrecepientamount = recipeientamount + randomnum
             self.cursor.execute('UPDATE userbalance SET northern == ? WHERE userid == ?',
-                                (newrecepientamount, userid, ))
+                                (int(newrecepientamount), str(userid), ))
             self.base.commit()
-            print('there')
             self.cursor.execute('UPDATE userbalance SET daily == ? WHERE userid == ?',
-                                (False, userid, ))
-            print('now')
+                                ('False', userid, ))
             self.base.commit()
+            return f"Вам было начислено {randomnum}Sev. Возвращайся за следующей наградой позже"
+        return f"Вам уже было начислена ежедневная награда сегодня"
 
 
 class Account(Database):
@@ -62,9 +59,7 @@ class Account(Database):
         return self.amount(userid=userid)
 
     def dailyCommand(self, userid: str):
-        print('234323')
-        self.daily(userid=userid)
-        return "Worked"
+        return self.daily(userid=userid)
 
 
 class Currency:

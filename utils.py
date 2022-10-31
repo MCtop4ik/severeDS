@@ -39,3 +39,7 @@ class UtilsCog(commands.Cog):
             await ctx.channel.purge(limit=int(amount))
         else:
             await ctx.channel.purge(limit=1000)
+
+    @commands.command()
+    async def set(self, ctx, name, secondname, data):
+        pass
